@@ -196,7 +196,7 @@ AddEventHandler("rsg-treasure:clent:digging", function(chest)
 
         if randomNumber > 90 then
             TriggerServerEvent('rsg-treasure:server:removeitem', 'shovel', 1)
-            TriggerEvent('inventory:client:ItemBox', sharedItems['shovel'], 'remove')
+            TriggerEvent('inventory:client:ItemBox', RSGCore.Shared.Items['shovel'], 'remove')
 
             RSGCore.Functions.Notify('your shovel is broken', 'error')
 
