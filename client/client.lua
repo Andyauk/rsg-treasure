@@ -16,7 +16,7 @@ AddEventHandler('rsg-treasure:client:gototreasure', function(treasureCoords, ite
 
     TriggerServerEvent('rsg-treasure:server:removeitem', item, 1)
 
-    RSGCore.Functions.Notify('Treasure location set!', 'primary')
+    lib.notify({ title = 'Inform', description = 'Treasure location set!', type = 'inform', duration = 5000 })
 
     started = true
 
@@ -198,7 +198,7 @@ AddEventHandler("rsg-treasure:clent:digging", function(chest)
             TriggerServerEvent('rsg-treasure:server:removeitem', 'shovel', 1)
             TriggerEvent('inventory:client:ItemBox', RSGCore.Shared.Items['shovel'], 'remove')
 
-            RSGCore.Functions.Notify('your shovel is broken', 'error')
+            lib.notify({ title = 'Error', description = 'your shovel is broken', type = 'error', duration = 5000 })
 
             started = false
         else
@@ -211,7 +211,7 @@ AddEventHandler("rsg-treasure:clent:digging", function(chest)
             started = false
         end
     else
-        RSGCore.Functions.Notify('You don\'t have a shovel!', 'error')
+        lib.notify({ title = 'Error', description = 'You don\'t have a shovel!', type = 'error', duration = 5000 })
 
         started = false
     end
