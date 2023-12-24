@@ -28,6 +28,6 @@ Config.RareItems = {
 Config.Locations = {
     {name = 'treasure1', coords = vector3(-48.93, 909.70, 209.02)}, -- example
     {name = 'treasure2', coords = vector3(-814.46, 331.10, 95.90)}, -- example
-    {name = 'treasure3', coords = vector3(-355.69, -148.64, 48.27)} -- example
+    {name = 'treasure3', coords = vector3(-355.69, -148.64, 48.27)}, -- example
     {name = 'treasure4', coords = vector3(-1703.63, -332.84, 176.43)} -- example
 }
