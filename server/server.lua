@@ -30,16 +30,48 @@ local function CheckVersion()
 end
 
 -----------------------------------------------------------------------
-
-RSGCore.Functions.CreateUseableItem("treasure1", function(source, item)
-    local src = source
-    local coords = vector3(-46.83929, 908.48779, 209.27473)
-
-    TriggerClientEvent("rsg-treasure:client:gototreasure", src, coords, item.name)
+-- use treasure map
+-----------------------------------------------------------------------
+RSGCore.Functions.CreateUseableItem("treasuremap", function(source, item)
+	local src = source
+	local Player = RSGCore.Functions.GetPlayer(source)
+    if Player.Functions.RemoveItem(item.name, 1, item.slot) then
+        TriggerClientEvent('rsg-treasure:client:usetreasuremap', src, item.name)
+    end
 end)
 
------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+-- resets treasure chests
+-----------------------------------------------------------------------
+AddEventHandler('txAdmin:events:scheduledRestart', function(eventData)
+    if eventData.secondsRemaining == 60 then -- 60 seconds
+        MySQL.update('UPDATE treasure SET looted = ?', { 0 })
+        print('treasure chests reset')
+    end
+end)
 
+-----------------------------------------------------------------------
+-- callback to see if treasure found or not
+-----------------------------------------------------------------------
+RSGCore.Functions.CreateCallback('rsg-treasure:server:gettreasurestate', function(source, cb, treasure)
+    local treasurestate = MySQL.query.await('SELECT * FROM treasure WHERE name=@name', {
+        ['@name'] = treasure,
+    })    
+    if treasurestate[1] ~= nil then
+        cb(treasurestate[1].looted)
+    end
+end)
+
+-----------------------------------------------------------------------
+-- change looted in database
+-----------------------------------------------------------------------
+RegisterServerEvent('rsg-treasure:server:setlooted', function(lootedname)
+    MySQL.update('UPDATE treasure SET looted = ? WHERE name = ?', { 1, lootedname })
+end)
+
+-----------------------------------------------------------------------
+-- give treasure reward
+-----------------------------------------------------------------------
 RegisterNetEvent('rsg-treasure:server:givereward', function()
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
@@ -79,9 +111,9 @@ RegisterNetEvent('rsg-treasure:server:givereward', function()
     end
 end)
 
------------------------------------------------------------------------------------
-
--- remove item/amount
+-----------------------------------------------------------------------
+-- remove item
+-----------------------------------------------------------------------
 RegisterServerEvent('rsg-treasure:server:removeitem')
 AddEventHandler('rsg-treasure:server:removeitem', function(item, amount)
     local src = source

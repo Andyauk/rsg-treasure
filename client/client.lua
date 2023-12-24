@@ -1,32 +1,9 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
-
-local initialCooldownSeconds = 3600 -- cooldown time in seconds between treasure
-local cooldownSecondsRemaining = 0 -- done to zero cooldown on restart
-local started = false
 local chestObject = nil
 
------------------------------------------------------------------------------------
-
--- treasure location set GPS
-RegisterNetEvent('rsg-treasure:client:gototreasure')
-AddEventHandler('rsg-treasure:client:gototreasure', function(treasureCoords, item)
-    StartGpsMultiRoute(`COLOR_RED`, true, true)
-    AddPointToGpsMultiRoute(treasureCoords.x, treasureCoords.y, treasureCoords.z)
-    SetGpsMultiRouteRender(true)
-
-    TriggerServerEvent('rsg-treasure:server:removeitem', item, 1)
-
-    lib.notify({ title = 'Inform', description = 'Treasure location set!', type = 'inform', duration = 5000 })
-
-    started = true
-
-    TriggerEvent('rsg-treasure:client:MetalDetector')
-    TriggerEvent('rsg-treasure:client:MetalDetectorBeep')
-end)
-
------------------------------------------------------------------------------------
-
+----------------------------------------------
 -- text to screen
+----------------------------------------------
 local DrawText3Ds = function(x, y, z, text)
     local _, _x, _y = GetScreenCoordFromWorldCoord(x, y, z)
     local str = CreateVarString(10, "LITERAL_STRING", text, Citizen.ResultAsLong())
@@ -38,7 +15,21 @@ local DrawText3Ds = function(x, y, z, text)
     DisplayText(str, _x, _y)
 end
 
+----------------------------------------------
+-- use treasure map (one time use)
+----------------------------------------------
+RegisterNetEvent('rsg-treasure:client:usetreasuremap', function(item)
+    for k,v in pairs(Config.Locations) do
+        local TreasureBlip = Citizen.InvokeNative(0x554D9D53F696D002, `BLIP_STYLE_GOLDEN_HAT`, v.coords)
+        SetBlipSprite(TreasureBlip,  joaat(Config.TreasureBlip.blipSprite), true)
+        SetBlipScale(Config.TreasureBlip.blipScale, 0.2)
+        Citizen.InvokeNative(0x9CB1A1623062F402, TreasureBlip, Config.TreasureBlip.blipName)
+    end
+end)
+
+----------------------------------------------
 -- dig up chest animation
+----------------------------------------------
 local StartAnimation = function(animDict, flags, playbackListName, groundZ, time)
     CreateThread(function()
         local player = PlayerPedId()
@@ -86,133 +77,130 @@ local StartAnimation = function(animDict, flags, playbackListName, groundZ, time
     end)
 end
 
--- cooldown
-local handleCooldown = function()
-    cooldownSecondsRemaining = initialCooldownSeconds
-
-    CreateThread(function()
-        while cooldownSecondsRemaining > 0 do
-            Wait(1000)
-
-            cooldownSecondsRemaining = cooldownSecondsRemaining - 1
-        end
-    end)
-end
-
--- detector part
-AddEventHandler('rsg-treasure:client:MetalDetector', function()
-    CreateThread(function()
-        while started do
-            Wait(4)
-
-            local ped = PlayerPedId()
-            local pos = GetEntityCoords(ped)
-            local isonmount = IsPedOnMount(ped)
-            local weaponhash = Citizen.InvokeNative(0x8425C5F057012DAB, ped)
-
+----------------------------------------------
+-- detector sound and animation
+----------------------------------------------
+CreateThread(function()
+    while true do
+        Wait(1)
+        local ped = PlayerPedId()
+        local pos = GetEntityCoords(ped)
+        local isonmount = IsPedOnMount(ped)
+        local weaponhash = Citizen.InvokeNative(0x8425C5F057012DAB, ped)
+        
+        if weaponhash == joaat('weapon_kit_metal_detector') and not isonmount then
             for _, v in pairs(Config.Locations) do
-                if weaponhash == -862059856 and cooldownSecondsRemaining == 0 and not isonmount then
-                    local dist = #(pos - v.coords)
+                local dist = #(pos - v.coords)
+                if dist < 1 then
+                    Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 1.0, -1)
+                    TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'metaldetector', Config.DetectorVolume)
+                    Wait(500)
+                elseif dist < 2 then
+                    Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.9, -1)
+                    TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'metaldetector', Config.DetectorVolume)
+                    Wait(600)
+                elseif dist < 3 then
+                    Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.8, -1)
+                    TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'metaldetector', Config.DetectorVolume)
+                    Wait(700)
+                elseif dist < 4 then
+                    Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.7, -1)
+                    TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'metaldetector', Config.DetectorVolume)
+                    Wait(800)
+                elseif dist < 5 then
+                    Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.6, -1)
+                    TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'metaldetector', Config.DetectorVolume)
+                    Wait(900)
+                elseif dist < 6 then
+                    Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.5, -1)
+                    TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'metaldetector', Config.DetectorVolume)
+                    Wait(1100)
+                elseif dist < 7 then
+                    Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.4, -1)
+                    TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'metaldetector', Config.DetectorVolume)
+                    Wait(1200)
+                elseif dist < 8 then
+                    Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.3, -1)
+                    TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'metaldetector', Config.DetectorVolume)
+                    Wait(1300)
+                elseif dist < 9 then
+                    Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.2, -1)
+                    TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'metaldetector', Config.DetectorVolume)
+                    Wait(1400)
+                elseif dist < 10 then
+                    Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.1, -1)
+                    TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'metaldetector', Config.DetectorVolume)
+                    Wait(1500)
+                end
+                
+            end
+        end
+        
+    end
+end)
 
-                    if dist < 1 then
-                        Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 1.0, -1)
-
-                        DrawText3Ds(v.coords.x, v.coords.y, v.coords.z + 1.0, "~g~E~w~ - Dig Treasure")
-
-                        if IsControlJustReleased(0, 0xCEFD9220) then -- [E]
-                            SetCurrentPedWeapon(ped, `WEAPON_UNARMED`, true)
-                            Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.0, -1)
-
-                            TriggerEvent('rsg-treasure:clent:digging', v.name)
-
-                            handleCooldown()
-                        end
-                    elseif dist < 2 then
-                        Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.9, -1)
-                    elseif dist < 3 then
-                        Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.8, -1)
-                    elseif dist < 4 then
-                        Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.7, -1)
-                    elseif dist < 5 then
-                        Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.6, -1)
-                    elseif dist < 6 then
-                        Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.5, -1)
-                    elseif dist < 7 then
-                        Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.4, -1)
-                    elseif dist < 8 then
-                        Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.3, -1)
-                    elseif dist < 9 then
-                        Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.2, -1)
-                    elseif dist < 10 then
-                        Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.1, -1)
-                    end
+----------------------------------------------
+-- show dig message
+----------------------------------------------
+CreateThread(function()
+    while true do
+        Wait(1)
+        local ped = PlayerPedId()
+        local pos = GetEntityCoords(ped)
+        local isonmount = IsPedOnMount(ped)
+        local weaponhash = Citizen.InvokeNative(0x8425C5F057012DAB, ped)
+        if weaponhash == joaat('weapon_kit_metal_detector') and not isonmount then
+            for _, v in pairs(Config.Locations) do
+                local dist = #(pos - v.coords)
+                if dist < 1 then
+                    DrawText3Ds(v.coords.x, v.coords.y, v.coords.z + 1.0, "[J] Dig for Treasure")
+                    if IsControlJustReleased(0, RSGCore.Shared.Keybinds['J']) then
+                        SetCurrentPedWeapon(ped, `WEAPON_UNARMED`, true)
+                        Citizen.InvokeNative(0x437C08DB4FEBE2BD, ped, "MetalDetectorDetectionValue", 0.0, -1)
+                        TriggerEvent('rsg-treasure:clent:digging', v.coords, v.name)
+                    end  
                 end
             end
         end
-    end)
+    end
 end)
 
--- bleep the metal detector when near treasure
-AddEventHandler('rsg-treasure:client:MetalDetectorBeep', function()
-    CreateThread(function()
-        while started do
-            Wait(4)
-
-            local ped = PlayerPedId()
-            local pos = GetEntityCoords(ped)
-            local isonmount = IsPedOnMount(ped)
-            local weaponhash = Citizen.InvokeNative(0x8425C5F057012DAB, ped)
-
-            for _, v in pairs(Config.Locations) do
-                if weaponhash == -862059856 and cooldownSecondsRemaining == 0 and not isonmount then
-                    local dist = #(pos - v.coords)
-
-                    if dist < 1 then
-                        TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'metaldetector', 0.5)
-
-                        Wait(500)
-                    elseif dist < 5 then
-                        TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'metaldetector', 0.3)
-
-                        Wait(1000)
-                    elseif dist < 10 then
-                        TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'metaldetector', 0.1)
-
-                        Wait(2000)
-                    end
-                end
-            end
-        end
-    end)
-end)
-
+----------------------------------------------
 -- dig for treasure
-RegisterNetEvent("rsg-treasure:clent:digging")
-AddEventHandler("rsg-treasure:clent:digging", function(chest)
+----------------------------------------------
+RegisterNetEvent('rsg-treasure:clent:digging', function(coords, name)
+    local treasure = name
     local hasItem = RSGCore.Functions.HasItem('shovel', 1)
-
     if hasItem then
         local randomNumber = math.random(1, 100)
-
         if randomNumber > 90 then
             TriggerServerEvent('rsg-treasure:server:removeitem', 'shovel', 1)
             TriggerEvent('inventory:client:ItemBox', RSGCore.Shared.Items['shovel'], 'remove')
-
-            lib.notify({ title = 'Error', description = 'your shovel is broken', type = 'error', duration = 5000 })
-
-            started = false
+            lib.notify({ title = 'Shovel Broken', description = 'your shovel is broken', type = 'error', duration = 5000 })
         else
-            StartAnimation('script@mech@treasure_hunting@chest', 0, 'PBL_CHEST_01', true, 10000)
-
-            Wait(10000)
-
-            TriggerServerEvent('rsg-treasure:server:givereward', chest)
-
-            started = false
+            RSGCore.Functions.TriggerCallback('rsg-treasure:server:gettreasurestate', function(result)
+                if result == 0 then
+                    -- veg modifiy
+                    local veg_modifier_sphere = 0
+                    if veg_modifier_sphere == nil or veg_modifier_sphere == 0 then
+                        local veg_radius = 2.0
+                        local veg_Flags =  1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256
+                        local veg_ModType = 1
+                        veg_modifier_sphere = Citizen.InvokeNative(0xFA50F79257745E74, coords.x, coords.y, coords.z, veg_radius, veg_ModType, veg_Flags, 0)
+                    else
+                        Citizen.InvokeNative(0x9CF1836C03FB67A2, Citizen.PointerValueIntInitialized(veg_modifier_sphere), 0)
+                        veg_modifier_sphere = 0
+                    end
+                    StartAnimation('script@mech@treasure_hunting@chest', 0, 'PBL_CHEST_01', true, 10000)
+                    Wait(10000)
+                    TriggerServerEvent('rsg-treasure:server:givereward', treasure)
+                    TriggerServerEvent('rsg-treasure:server:setlooted', treasure)
+                else
+                    lib.notify({ title = 'Already Looted', description = 'treasure chest has already been looted', type = 'error', duration = 7000 })
+                end
+            end, treasure)
         end
     else
-        lib.notify({ title = 'Error', description = 'You don\'t have a shovel!', type = 'error', duration = 5000 })
-
-        started = false
+        lib.notify({ title = 'No Shovel', description = 'you don\'t have a shovel!', type = 'error', duration = 5000 })
     end
 end)
